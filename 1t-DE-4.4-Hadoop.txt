@@ -1,0 +1,52 @@
+Команды, используемые при выполнении задания 4.4-Введение в Hadoop
+
+1)Подключаемся к контейнеру «datanode-1», создаем внутри папку и переносим в нее скачанные файлы.
+
+1.1) Создание каталога в контейнере:
+    - Подкючаемся к интерфейсу командной строки в контенйере datanode_1
+        docker exec -it ee20f3701cd42bc66344182e33760ca8e51f09513b322b83e71d7c5465a67253 bash    
+    - Создаём каталог ViM в каталоге /home:
+        mkdir /home/ViM
+1.2) Переносим в контейнер скачанные файлы:
+        docker cp home/downloads/voyna-i-mir-tom-1.txt ee20f3701cd4:/home/ViM
+        docker cp home/downloads/voyna-i-mir-tom-2.txt ee20f3701cd4:/home/ViM
+        docker cp home/downloads/voyna-i-mir-tom-3.txt ee20f3701cd4:/home/ViM
+        docker cp home/downloads/voyna-i-mir-tom-4.txt ee20f3701cd4:/home/ViM
+
+2) Загружаем полученные файлы на hdfs в вашу личную папку.
+
+    2.1)Создадим новый каталог ViM в каталоге пользователя в HDFS:
+        hadoop fs -mkdir /user/loghue/ViM
+
+    2.2) Копируем файлы из локальной системы (контейнер с узлом DATANODE) в созданный каталог на HDFS:
+        hadoop fs -put /home/ViM/* /user/loghue/ViM
+
+3) Файлы «схлопываем» в один:
+    3.1) Используем команду, которая копирует все файлы из указанного каталога в HDFS в один локальный файл:
+        hadoop fs -getmerge /user/loghue/ViM/ /home/ViM/voyna-i-mir+.txt
+
+4) Команда, которая выводит содержимое каталога с файлом "Война и мир":
+    hadoop fs -ls /user/loghue/ViM
+
+5) Установите режим доступа, который дает полный доступ для владельца файла, а для сторонних пользователей возможность читать и выполнять.
+    5.1) Изменяем владельца файла (loghue теперь владелец, ранее был root)
+        hadoop fs -chown loghue:loghue /user/loghue/ViM/voyna-i-mir+.txt
+    5.2) Установим полный доступ для владельца файла, а для сторонних пользователей возможность читать и выполнять.
+        hadoop fs -chmod 755 /user/loghue/ViM/voyna-i-mir+.txt
+
+6) Вывод на экран информации о том, сколько места на диске занимает наш файл.
+    Желательно, чтобы размер файла был удобочитаемым (флаг -h)
+    hadoop fs -du -h /user/loghue/ViM/voyna-i-mir+.txt
+    Вывод: 2.9 M  /user/loghue/ViM/voyna-i-mir+.txt
+
+7) Изменение фактора (коэффициента) репликации файла.
+    hadoop fs -setrep -R 2 /user/loghue/ViM/voyna-i-mir+.txt
+
+8) Повторите команду, которая выводит информацию о том, какое место на диске занимает файл и убедитесь, что изменения произошли.
+        hadoop fs -du -h /user/loghue/ViM/voyna-i-mir+.txt
+    Вывод: 2.9 M  /user/loghue/ViM/voyna-i-mir+.txt
+
+9) И финальное — напишите команду, которая подсчитывает количество строк в произведении «Война и мир».
+    # hadoop fs -cat /user/loghue/ViM/voyna-i-mir+.txt | wc -l
+    Вывод: 10272
+
